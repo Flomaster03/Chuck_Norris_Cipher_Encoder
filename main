@@ -1,0 +1,78 @@
+fun main() {
+    while (true) {
+        println("\nPlease input operation (encode/decode/exit):")
+        val input = readln()
+        when (input) {
+            "encode" -> incoding()
+            "decode" -> decoding()
+            "exit" -> {
+                println("Bye!")
+                break
+            }
+
+            else -> println("There is no \'$input\' operation")
+        }
+    }
+}
+
+fun incoding() {
+    println("Input string:")
+    val input = readln()
+    var str = ""
+    for (i in input) {
+        val a = Integer.toBinaryString(i.code).toInt()
+        str += String.format("%07d", a)
+    }
+
+    var totalStr = ""
+    var count = 1
+    var block2 = str[0].toString()
+    var block1 = if (block2.last() == '0') "00" else "0"
+    for (i in 1 until str.length) {
+        if (str[i] == block2.last()) {
+            count++
+        } else {
+            totalStr += "$block1 ${String.format("%0${count}d", 0)} "
+            count = 1
+            block2 = str[i].toString()
+            block1 = if (block2.last() == '0') "00" else "0"
+        }
+    }
+    totalStr += "$block1 ${String.format("%0${count}d", 0)}"
+    println("Encoded string:\n$totalStr")
+}
+
+
+fun decoding() {
+    println("Input encoded string:")
+    val str = readln().split(" ")
+    if (checkInput(str)) {
+        var totalStr = ""
+        for (i in 1 until str.size step 2) {
+            var a = if (str[i - 1] == "0") 1 else 0
+            repeat(str[i].length) {
+                totalStr += a.toString()
+            }
+        }
+        if (!checkString(totalStr)) {
+            println("Encoded string is not valid.")
+            return
+        }
+        val list = totalStr.chunked(7)
+        println("\nDecoded string:")
+        list.forEach { print(it.toInt(2).toChar()) }
+    } else {
+        println("Encoded string is not valid.")
+    }
+}
+
+fun checkInput(inputList: List<String>): Boolean {
+    return when {
+        "[^0+]".toRegex().matches(inputList.joinToString("")) -> false
+        inputList.filterIndexed { index, s -> (index % 2 == 0) && (s != "0") && (s != "00") }.isNotEmpty() -> false
+        inputList.size % 2 != 0 -> false
+        else -> true
+    }
+}
+
+fun checkString(str: String): Boolean = str.length % 7 == 0
